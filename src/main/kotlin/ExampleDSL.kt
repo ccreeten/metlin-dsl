@@ -60,6 +60,7 @@ class SequenceBuilder(private val name: String) {
     }
 
     infix operator fun Unit.compareTo(value: Int) : Int {
+        // TODO: how to determine operator type, as e.g. a > b gets translated to a.compareTo(b) > 0
         return 0
     }
 

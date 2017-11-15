@@ -11,19 +11,35 @@ abstract class Token(val name: String) {
 }
 
 class Def(name: String, val size: Int) : Token(name) {
-    override fun parse(input: ByteArray, offset: Int, result: List<Value>): ParseResult = if (offset + size <= input.size) Triple(true, offset + size, result + Value(this, offset)) else Triple(false, offset, result)
+    override fun parse(input: ByteArray, offset: Int, result: List<Value>): ParseResult =
+            if (offset + size <= input.size)
+                Triple(true, offset + size, result + Value(this, offset))
+            else
+                Triple(false, offset, result)
 }
 
 class Seq(name: String, val left: Token, val right: Token) : Token(name) {
     constructor(left: Token, right: Token) : this("", left, right)
 
-    override fun parse(input: ByteArray, offset: Int, result: List<Value>): ParseResult = left.parse(input, offset, result).let { if (it.first) right.parse(input, it.second, it.third) else Triple(false, offset, result) }
+    override fun parse(input: ByteArray, offset: Int, result: List<Value>): ParseResult =
+            left.parse(input, offset, result).let {
+                if (it.first)
+                    right.parse(input, it.second, it.third)
+                else
+                    Triple(false, offset, result)
+            }
 }
 
 class Cho(name: String, val left: Token, val right: Token) : Token(name) {
     constructor(left: Token, right: Token) : this("", left, right)
 
-    override fun parse(input: ByteArray, offset: Int, result: List<Value>): Triple<Boolean, Int, List<Value>> = left.parse(input, offset, result).let { if (it.first) Triple(true, it.second, it.third) else right.parse(input, offset, result) }
+    override fun parse(input: ByteArray, offset: Int, result: List<Value>): Triple<Boolean, Int, List<Value>> =
+            left.parse(input, offset, result).let {
+                if (it.first)
+                    Triple(true, it.second, it.third)
+                else
+                    right.parse(input, offset, result)
+            }
 }
 
 class Rep(name: String, val operand: Token) : Token(name) {
@@ -31,7 +47,10 @@ class Rep(name: String, val operand: Token) : Token(name) {
 
     tailrec override fun parse(input: ByteArray, offset: Int, result: List<Value>): ParseResult {
         val (success, outOffset, outResult) = operand.parse(input, offset, result)
-        return if (!success) Triple(true, outOffset, outResult) else parse(input, outOffset, outResult)
+        return if (!success)
+            Triple(true, outOffset, outResult)
+        else
+            parse(input, outOffset, outResult)
     }
 }
 
